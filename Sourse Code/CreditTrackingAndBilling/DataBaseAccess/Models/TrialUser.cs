@@ -1,9 +1,8 @@
-﻿namespace DataBaseAccess.Models
-{
-    public class TrialUser : User
-    {
-        public DateTime FirstReportRanDate { get; set; }
+﻿namespace DataBaseAccess.Models;
 
-        public bool TrialCompleted {  get; set; }
-    }
+public class TrialUser : User
+{
+    public DateTime FirstReportRanDate { get; set; }
+
+    public bool TrialCompleted {  get; set; }
 }
