@@ -1,0 +1,52 @@
+Assumptions
+"customer" is an org, so user must be part of an org?
+user allocated reports/ month isnt changing often
+"... over a couple of weeks" assumed that after 2 weeks this means they are blocked wether they have used all 10 or not
+"on track to hit limit" 90% usage?
+User Auth is a seperate system and as long as the tocken matches its ok
+Setting user limits doesnt validate the whole plan can accomidate; 100 reports, 2 people doesnt error on 60 each
+
+Use Report Credit states "accept the org identifier and the enquiry identifier" but not the user ID?
+
+DB objects
+"plan" - which plan the org is on
+	Plan ID
+	Name
+	Reports/Month
+"user" - user
+	User ID 
+	Org ID
+	Reports Ran in Month
+	Last Ran Report Date Time
+"Org" - orgs associated with xapien
+	Org ID
+	Plan ID
+	Per User Limit
+	Reports Ran in month
+	Last Ran Report Data Time
+	Topup reports
+	Data of Last Topup
+"reports ran" - keep track of the reports
+	Report ID
+	Report was aloud
+	Generated Report ID - this is an external number so dont want to use as PK
+	User ID
+	Report Data Time
+"trail user" - user on trial, not in an org
+	Identifier - not a customer so this might just be a seeded hash of their email?
+	reports used
+	First report ran time
+	Trial Completed
+
+End points;
+Admin;
+Set plan - takes org and plan ID
+	needs to validate that if going down user limits dont sum to more 
+Top Up Customer Account - takes Org ID and Top-up Value
+
+Org
+Set per-User Limit - Takes Org ID and limit
+
+User
+Use Report Credit - Takes Org ID and report ID (must also take user ID?)
+	Validate against Org retports and user reports
