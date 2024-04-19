@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -15,26 +16,12 @@ namespace DataBaseAccess.Migrations
                 columns: table => new
                 {
                     PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PlanName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Credits = table.Column<int>(type: "int", nullable: false)
+                    PlanName = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    Credits = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Plans", x => x.PlanId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TrialUsers",
-                columns: table => new
-                {
-                    TrialUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreditsUsed = table.Column<int>(type: "int", nullable: false),
-                    FirstReportRanDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TrialCompleted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TrialUsers", x => x.TrialUserID);
                 });
 
             migrationBuilder.CreateTable(
@@ -43,10 +30,10 @@ namespace DataBaseAccess.Migrations
                 {
                     OrganisationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PlanId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreditsPerUser = table.Column<int>(type: "int", nullable: false),
-                    CreditsUsed = table.Column<int>(type: "int", nullable: false),
+                    CreditsPerUser = table.Column<long>(type: "bigint", nullable: false),
+                    CreditsUsed = table.Column<long>(type: "bigint", nullable: false),
                     TimeOfLastReportRan = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    TopUpCredis = table.Column<int>(type: "int", nullable: true),
+                    TopUpCredits = table.Column<long>(type: "bigint", nullable: false),
                     TimeOfLastTopUp = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
@@ -61,19 +48,22 @@ namespace DataBaseAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 columns: table => new
                 {
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OrganisationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreditsUsed = table.Column<int>(type: "int", nullable: false),
-                    TimeOfLastReportRan = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CreditsUsed = table.Column<long>(type: "bigint", nullable: false),
+                    TimeOfLastReportRan = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
+                    OrganisationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    FirstReportRanDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    TrialCompleted = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UserId);
+                    table.PrimaryKey("PK_User", x => x.UserId);
                     table.ForeignKey(
-                        name: "FK_Users_Organisations_OrganisationId",
+                        name: "FK_User_Organisations_OrganisationId",
                         column: x => x.OrganisationId,
                         principalTable: "Organisations",
                         principalColumn: "OrganisationId",
@@ -85,7 +75,8 @@ namespace DataBaseAccess.Migrations
                 columns: table => new
                 {
                     ReportRequestId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ReportSuccessfull = table.Column<bool>(type: "bit", nullable: false),
+                    ReportId = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    ReportRequestSuccessful = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RequestTime = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -93,9 +84,9 @@ namespace DataBaseAccess.Migrations
                 {
                     table.PrimaryKey("PK_ReportRequests", x => x.ReportRequestId);
                     table.ForeignKey(
-                        name: "FK_ReportRequests_Users_UserId",
+                        name: "FK_ReportRequests_User_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -111,8 +102,8 @@ namespace DataBaseAccess.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_OrganisationId",
-                table: "Users",
+                name: "IX_User_OrganisationId",
+                table: "User",
                 column: "OrganisationId");
         }
 
@@ -123,10 +114,7 @@ namespace DataBaseAccess.Migrations
                 name: "ReportRequests");
 
             migrationBuilder.DropTable(
-                name: "TrialUsers");
-
-            migrationBuilder.DropTable(
-                name: "Users");
+                name: "User");
 
             migrationBuilder.DropTable(
                 name: "Organisations");

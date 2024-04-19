@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataBaseAccess.Migrations
 {
     [DbContext(typeof(CreditTrackingDbContext))]
-    [Migration("20240419093805_typoChnages")]
-    partial class typoChnages
+    [Migration("20240419123823_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,7 +67,8 @@ namespace DataBaseAccess.Migrations
 
                     b.Property<string>("PlanName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.HasKey("PlanId");
 
@@ -82,7 +83,8 @@ namespace DataBaseAccess.Migrations
 
                     b.Property<string>("ReportId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<bool>("ReportRequestSuccessful")
                         .HasColumnType("bit");
@@ -142,7 +144,7 @@ namespace DataBaseAccess.Migrations
                 {
                     b.HasBaseType("DataBaseAccess.Models.User");
 
-                    b.Property<DateTime>("FirstReportRanDate")
+                    b.Property<DateTime?>("FirstReportRanDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("TrialCompleted")

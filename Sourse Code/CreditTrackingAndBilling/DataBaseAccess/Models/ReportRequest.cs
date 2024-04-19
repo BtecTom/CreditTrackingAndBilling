@@ -4,7 +4,7 @@ namespace DataBaseAccess.Models;
 
 public class ReportRequest
 {
-    public Guid ReportRequestId { get; set; }
+    public Guid ReportRequestId { get; set; } = Guid.NewGuid();
 
     [MaxLength(25)]
     public required string ReportId { get; set; }

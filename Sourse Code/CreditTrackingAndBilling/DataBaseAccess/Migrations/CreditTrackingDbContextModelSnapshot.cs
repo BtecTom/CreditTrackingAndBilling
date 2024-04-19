@@ -141,7 +141,7 @@ namespace DataBaseAccess.Migrations
                 {
                     b.HasBaseType("DataBaseAccess.Models.User");
 
-                    b.Property<DateTime>("FirstReportRanDate")
+                    b.Property<DateTime?>("FirstReportRanDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("TrialCompleted")
