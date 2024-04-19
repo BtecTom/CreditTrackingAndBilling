@@ -50,7 +50,7 @@ namespace DataBaseAccess.Migrations
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("Organisations");
+                    b.ToTable("Organisations", (string)null);
                 });
 
             modelBuilder.Entity("DataBaseAccess.Models.Plan", b =>
@@ -68,7 +68,7 @@ namespace DataBaseAccess.Migrations
 
                     b.HasKey("PlanId");
 
-                    b.ToTable("Plans");
+                    b.ToTable("Plans", (string)null);
                 });
 
             modelBuilder.Entity("DataBaseAccess.Models.ReportRequest", b =>
@@ -94,7 +94,7 @@ namespace DataBaseAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ReportRequests");
+                    b.ToTable("ReportRequests", (string)null);
                 });
 
             modelBuilder.Entity("DataBaseAccess.Models.User", b =>
@@ -116,7 +116,7 @@ namespace DataBaseAccess.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
 

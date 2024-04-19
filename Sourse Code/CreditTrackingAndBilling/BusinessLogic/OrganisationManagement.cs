@@ -3,11 +3,15 @@ using DataBaseAccess.Models;
 
 namespace BusinessLogic
 {
-    public class OrganisationManagement(CreditTrackingDbContext dbContext)
+    public sealed class OrganisationManagement(CreditTrackingDbContext dbContext, NotificationService notificationService)
     {
-        private readonly NotificationService _notificationService = new();
-
-        public async Task<HttpResponseMessage> SetPerUserLimit(Guid id, uint creditLimitPerUser)
+        /// <summary>
+        /// Sets the per use credit limit on the organisation
+        /// </summary>
+        /// <param name="id">The Organisations Id</param>
+        /// <param name="creditLimitPerUser">The limit new credit limit per user</param>
+        /// <returns>A task with a HttpResponseMessage once completed</returns>
+        public async Task<HttpResponseMessage> SetPerUserCreditLimit(Guid id, uint creditLimitPerUser)
         {
             var organisation = dbContext.Organisations.FirstOrDefault(organisation => organisation.OrganisationId == id);
             if (organisation == null)
@@ -21,11 +25,15 @@ namespace BusinessLogic
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// Validates that an organisation has enough credits to make a request 
+        /// </summary>
+        /// <param name="organisation">The organisation</param>
+        /// <returns>A task with a HttpResponseMessage once completed</returns>
         internal async Task<HttpResponseMessage> OrganisationUserReportRequest(Organisation organisation)
         {
-
             // If the org did a report was this month, and they're out of credits then fail
-            if (ExceededWithTopUp(organisation))
+            if (OrganisationHasExceededCreditLimit(organisation))
             {
                 return new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
             }
@@ -39,23 +47,33 @@ namespace BusinessLogic
             organisation.TimeOfLastReportRan = DateTime.Now;
             await dbContext.SaveChangesAsync();
 
-            _ = _notificationService.SendNotificationIfNeeded(organisation);
+            await notificationService.SendNotificationIfNeeded(organisation);
 
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
 
-        internal bool ExceededWithTopUp(Organisation organisation)
+        private bool OrganisationHasExceededCreditLimit(Organisation organisation)
         {
-            if (organisation.CreditsUsed >= organisation.Plan.Credits &&
-            (organisation.TimeOfLastReportRan?.Month == DateTime.Now.Month && organisation.TimeOfLastReportRan?.Year == DateTime.Now.Year))
+            if (organisation.TimeOfLastReportRan?.Month == DateTime.Now.Month && organisation.TimeOfLastReportRan?.Year == DateTime.Now.Year &&
+                organisation.CreditsUsed >= organisation.Plan.Credits)
             {
-                if (organisation.TimeOfLastTopUp?.Month == DateTime.Now.Month && organisation.TimeOfLastTopUp?.Year == DateTime.Now.Year)
-                {
-                    return organisation.CreditsUsed >= organisation.Plan.Credits + organisation.TopUpCredits;
-                }
-                return true;
+                var exceededWithTopUp = ExceededWithTopUp(organisation);
+                return exceededWithTopUp == null || exceededWithTopUp.Value;
             }
+
             return false;
+        }
+
+        private bool? ExceededWithTopUp(Organisation organisation)
+        {
+            // have they had a top-up this month?
+            if (organisation.TimeOfLastTopUp?.Month == DateTime.Now.Month && organisation.TimeOfLastTopUp?.Year == DateTime.Now.Year)
+            {
+                // if they have, then see if they have used them all
+                return organisation.CreditsUsed >= organisation.Plan.Credits + organisation.TopUpCredits;
+            }
+            // else they have no top up so return null, so we know we didn't check credits
+            return null;
         }
     }
 }

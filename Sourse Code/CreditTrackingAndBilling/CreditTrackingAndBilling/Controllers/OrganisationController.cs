@@ -6,22 +6,25 @@ namespace CreditTrackingAndBilling.Controllers
 {
     [ApiController]
     [Route("[controller]/[action]")]
-    public class OrganisationController(ILogger<OrganisationController> logger, CreditTrackingDbContext dbContext)
+    public class OrganisationController(ILogger<OrganisationController> logger, CreditTrackingDbContext dbContext, 
+        NotificationService notificationService, AccessControlService accessControlService)
         : ControllerBase
     {
+        private readonly OrganisationManagement _organisationManagement = new(dbContext, notificationService);
 
-        private readonly OrganisationManagement _organisationManagement = new(dbContext);
-        private readonly ILogger<OrganisationController> _logger = logger;
-
-        [HttpPut(Name = "SetPerUserLimit")]
-        [ActionName("SetPerUserLimit")]
-        public async Task<HttpResponseMessage> SetPerUserLimit(string token, Guid organisationId, uint perUserLimit)
+        [HttpPut(Name = "SetPerUserCreditLimit")]
+        [ActionName("SetPerUserCreditLimit")]
+        public async Task<HttpResponseMessage> SetPerUserCreditLimit(string token, Guid organisationId, uint perUserLimit)
         {
-            if (!AccessControlService.Validate(token))
+            if (!accessControlService.Validate(token))
             {
+                logger.Log(LogLevel.Information, $"Token failed to validate: {token}");
                 return new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
             }
-            return await _organisationManagement.SetPerUserLimit(organisationId, perUserLimit);
+
+            var result = await _organisationManagement.SetPerUserCreditLimit(organisationId, perUserLimit);
+            logger.Log(LogLevel.Information, $"Set Per User Limit completed with code: {result.StatusCode}");
+            return result;
         }
     }
 }

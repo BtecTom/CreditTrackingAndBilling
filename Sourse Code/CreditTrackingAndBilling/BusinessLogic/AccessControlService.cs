@@ -1,9 +1,13 @@
 ﻿namespace BusinessLogic
 {
-    public static class AccessControlService
+    public class AccessControlService
     {
-
-        public static bool Validate(string token)
+        /// <summary>
+        /// Validate the requests Token
+        /// </summary>
+        /// <param name="token">the request token</param>
+        /// <returns>true if the token is valid for this request</returns>
+        public bool Validate(string token)
         {
             return true;
         }

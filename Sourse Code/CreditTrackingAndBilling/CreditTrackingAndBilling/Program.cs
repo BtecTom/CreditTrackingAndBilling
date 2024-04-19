@@ -1,3 +1,4 @@
+using BusinessLogic;
 using DataBaseAccess;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,15 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("Live");
 
 builder.Services.AddDbContext<CreditTrackingDbContext>(options => options.UseSqlServer(connectionString));
+
+if (!double.TryParse(builder.Configuration.GetSection("NotificationServiceSettings")["NearFullUsePercentage"],
+        out var nearFullUsePercentage) || nearFullUsePercentage < 0 || nearFullUsePercentage > 1)
+{
+    throw new InvalidOperationException("NearFullUsePercentage of invalid type or value");
+}
+
+builder.Services.AddSingleton(_ => new NotificationService(nearFullUsePercentage));
+builder.Services.AddSingleton<AccessControlService>();
 
 var app = builder.Build();
 

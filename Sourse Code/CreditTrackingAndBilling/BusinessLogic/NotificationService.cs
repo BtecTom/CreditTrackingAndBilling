@@ -2,20 +2,25 @@
 
 namespace BusinessLogic
 {
-    public class NotificationService
+    public class NotificationService(double warningPercentage)
     {
-        private readonly double _warningPercentage = 0.9;
-
-        public async Task SendNotificationIfNeeded(Organisation organisation)
+        /// <summary>
+        /// Sets a notification to Xapien if needed
+        /// </summary>
+        /// <param name="organisation">The organisations details</param>
+        /// <returns>A task for sending the notification</returns>
+        public virtual Task SendNotificationIfNeeded(Organisation organisation)
         {
             if (organisation.CreditsUsed >= organisation.Plan.Credits) 
             {
                 NotifyOfAllCreditsUsed(organisation.OrganisationId);
             }
-            else if (organisation.CreditsUsed >= organisation.Plan.Credits * _warningPercentage)
+            else if (organisation.CreditsUsed >= organisation.Plan.Credits * warningPercentage)
             {
                 NotifyOfNearFullUsage(organisation.OrganisationId);
             }
+
+            return Task.CompletedTask;
         }
 
         private void NotifyOfAllCreditsUsed(Guid id)

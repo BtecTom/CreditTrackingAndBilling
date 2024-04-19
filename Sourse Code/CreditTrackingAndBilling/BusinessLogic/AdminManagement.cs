@@ -2,8 +2,14 @@
 
 namespace BusinessLogic
 {
-    public class AdminManagement(CreditTrackingDbContext dbContext)
+    public sealed class AdminManagement(CreditTrackingDbContext dbContext)
     {
+        /// <summary>
+        /// Adds a top-up the customers 
+        /// </summary>
+        /// <param name="id">The customers Id</param>
+        /// <param name="topUp">The amount to add to the customers top-up</param>
+        /// <returns>HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> TopUpCustomerAccount(Guid id, uint topUp)
         {
             var organisation = dbContext.Organisations.FirstOrDefault(organisation => organisation.OrganisationId == id);

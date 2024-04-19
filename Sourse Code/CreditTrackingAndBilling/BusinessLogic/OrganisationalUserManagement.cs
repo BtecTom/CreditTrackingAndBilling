@@ -4,8 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic
 {
-    public class UserManagement(CreditTrackingDbContext dbContext)
+    public sealed class OrganisationalUserManagement(CreditTrackingDbContext dbContext, NotificationService notificationService)
     {
+        /// <summary>
+        /// Request a report for an organisational user
+        /// </summary>
+        /// <param name="id">The organisational users Id</param>
+        /// <param name="reportId">The Report Id being requested</param>
+        /// <returns>A task with a HttpResponseMessage once completed</returns>
         public async Task<HttpResponseMessage> UserReportRequest(Guid id, string reportId)
         {
             var user = dbContext.Users.Include(u => u.Organisation).Include(u => u.Organisation.Plan ).FirstOrDefault(user => user.UserId == id);
@@ -15,22 +21,21 @@ namespace BusinessLogic
                 return new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
             }
 
-            // If the user did a report was this month, and they're out of credits then fail
-            if (user.CreditsUsed >= user.Organisation.CreditsPerUser && 
-                (user.TimeOfLastReportRan?.Month == DateTime.Now.Month && user.TimeOfLastReportRan?.Year == DateTime.Now.Year))
+            // If the User hasen't done a report this month, reset their credits used
+            if (user.TimeOfLastReportRan?.Month != DateTime.Now.Month && user.TimeOfLastReportRan?.Year != DateTime.Now.Year)
+            {
+                user.CreditsUsed = 0;
+            }
+            // If they have done one this month check if they have exceeded their per-user credit limit
+            else if (user.CreditsUsed >= user.Organisation.CreditsPerUser)
             {
                 dbContext.ReportRequests.Add(new ReportRequest { User = user, ReportId = reportId, ReportRequestSuccessful = false});
                 await dbContext.SaveChangesAsync();
                 return new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden);
             }
 
-            if (user.TimeOfLastReportRan?.Month < DateTime.Now.Month || user.TimeOfLastReportRan?.Year < DateTime.Now.Year)
-            {
-                user.CreditsUsed = 0;
-            }
-
             // now check the org
-            var orgResult = await new OrganisationManagement(dbContext).OrganisationUserReportRequest(user.Organisation);
+            var orgResult = await new OrganisationManagement(dbContext, notificationService).OrganisationUserReportRequest(user.Organisation);
             if (orgResult.StatusCode != System.Net.HttpStatusCode.OK)
             {
                 dbContext.ReportRequests.Add(new ReportRequest { User = user, ReportId = reportId, ReportRequestSuccessful = false });
